@@ -17,8 +17,9 @@ const USDTar_WHALE = "0xccdead94e8cf17de32044d9701c4f5668ad0bef9"
 const USDCar_WHALE = "0x62ed28802362bb79ef4cee858d4f7aca5edd0490"
 const DAIar_WHALE = "0xf6c75d85ef66d57339f859247c38f8f47133bd39"
 
-describe("LiquidityExamples2", () => {
+describe("LiquidityExamples", () => {
   let liquidityExamples
+  let liquidityUSDT
   let accounts
   let dai
   let usdc
@@ -28,10 +29,16 @@ describe("LiquidityExamples2", () => {
     accounts = await ethers.getSigners()
 
     const LiquidityExamples = await ethers.getContractFactory(
-      "LiquidityExamples2"
+      "LiquidityExamples"
     )
     liquidityExamples = await LiquidityExamples.deploy()
     await liquidityExamples.deployed()
+
+    //second contract
+    const LiquidityUSDT = await ethers.getContractFactory("LiquidityUSDT")
+    liquidityUSDT = await LiquidityUSDT.deploy()
+    await liquidityUSDT.deployed()
+    console.log(liquidityUSDT.address)
 
     dai = await ethers.getContractAt("IERC20", DAI)
     usdc = await ethers.getContractAt("IERC20", USDC)
@@ -64,8 +71,8 @@ describe("LiquidityExamples2", () => {
     // const usdcAmount = 1000n * 10n ** 6n;
     const daiAmount = ethers.utils.parseEther("100")
     //beacuse it just has 6 decimals
-    const usdcAmount = "100000000"
-    const usdtAmount = "100000000"
+    const usdcAmount = "200000000"
+    const usdtAmount = "200000000"
     // const usdtAmount = ethers.utils.parseEther("100");
 
     // expect(await dai.balanceOf(daiWhale.address)).to.gte(daiAmount);
@@ -88,7 +95,7 @@ describe("LiquidityExamples2", () => {
     await l.wait()
     await t.wait()
     await tt.wait()
-    console.log("transfered")
+    console.log("transfered me")
   })
 
   it("mintNewPosition", async () => {
@@ -105,16 +112,26 @@ describe("LiquidityExamples2", () => {
     await usdc
       .connect(accounts[0])
       .transfer(liquidityExamples.address, usdcAmount)
-    await usdt
+    const u = await usdt
       .connect(accounts[0])
       .transfer(liquidityExamples.address, usdtAmount)
+    await u.wait()
+    console.log("transfered examples")
+
+    await usdc.connect(accounts[0]).transfer(liquidityUSDT.address, usdcAmount)
+    const ut = await usdt
+      .connect(accounts[0])
+      .transfer(liquidityUSDT.address, usdtAmount)
+    await ut.wait()
+    console.log("transfered usdt")
 
     const w = await liquidityExamples.mintNewPosition()
     await w.wait()
     console.log("minted")
 
-    const x = await liquidityExamples.mintNewPosition2()
+    const x = await liquidityUSDT.mintNewPosition()
     await x.wait()
+    console.log("minted USDT")
 
     //whatever we do not add as liquidity on the SC, we will be getting a refund, so we are checking that
     console.log(
